@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/flinkdemo/src/main/java/flinkstu/processfunction/KeyedProcessFunc.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/flinkdemo/src/main/java/flinkstu/processfunction/Temp_Test.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/flinkdemo/src/main/java/flinkstu/sink/JDBCSink.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/flinkdemo/src/main/java/flinkstu/sink/KafkaSink.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/flinkdemo/src/main/java/flinkstu/sink/RedisSink.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/flinkdemo/src/main/java/flinkstu/source/CollectionRead.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/flinkdemo/src/main/java/flinkstu/state/KeyByApplication.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/flinkdemo/src/main/java/flinkstu/state/KeyedState.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/flinkdemo/src/main/java/flinkstu/state/OperateState.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/flinkdemo/src/main/java/flinkstu/state/StateBack_Test.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/mall-publisher/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mall-publisher/src/main/resources" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/mall/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mall2021-realtime/src/main/java/com/keven/mall/realtime/app/dwm/OrderWideApp.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/mall2021-realtime/src/main/java/com/keven/mall/realtime/app/dwm/PaymentWideApp.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/mall2021-realtime/src/main/java/com/keven/mall/realtime/app/dws/ProductStatsApp.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/mall2021-realtime/src/main/java/com/keven/mall/realtime/app/dws/ProvinceStatsSqlApp.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/mall2021-realtime/src/main/java/com/keven/mall/realtime/app/ods/FlinkCDC.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/mall2021-realtime/src/main/java/com/keven/mall/realtime/bean/VisitorStats.java" charset="GBK" />
+    <file url="PROJECT" charset="GBK" />
+  </component>
+</project>
