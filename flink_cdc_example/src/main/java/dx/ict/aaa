@@ -1,0 +1,142 @@
+#! /bin/bash
+
+if [ $# = 1 ]
+then
+start_dt=$1
+end_dt=$1
+elif [ $# = 2 ]
+then
+start_dt=$1
+end_dt=$2
+elif [ $# = 0 ]
+then
+start_dt=`date -d '-1 day' +%F`
+end_dt=`date -d '-1 day' +%F`
+fi
+
+start_sec=`date -d $start_dt +%s`
+end_sec=`date -d $end_dt +%s`
+
+while true;
+do
+hdfs dfs -test -e /user/hive/warehouse/dw_ict_market.db/dw_employee_contribution_efficiency/pt=$k/_SUCCESS;
+file1_exists=$?
+hdfs dfs -test -e /user/hive/warehouse/dw_ict_market.db/dw_market_base_info/pt=$k/_SUCCESS;
+file2_exists=$?
+hdfs dfs -test -e /user/hive/warehouse/dw_ict_market.db/dw_market_lable/pt=$k/_SUCCESS;
+file3_exists=$?
+hdfs dfs -test -e /user/hive/warehouse/dw_ict_market.db/dm_market_status_change_aggr/pt=$k/_SUCCESS;
+file4_exists=$?
+
+if [[ $file1_exists -eq 0 && $file2_exists -eq 0 && $file3_exists -eq 0 && $file4_exists -eq 0]];
+then
+for ((i=$start_sec;i<=$end_sec;i+=86400))
+do
+j=`date -d @$i +%Y%m%d`
+k=`date -d @$i +%F`
+a_day=`date -d $k'-6 day' +%F`
+
+#cat /mnt/mfs/o2o/$k/*/o2o-dc-client-statusBar.txt.dc_*.$k.txt.gz>/mnt/mfs/o2o/$k/o2o-dc-client-statusBar.$k.txt.gz
+
+#pigz -d /mnt/mfs/o2o/$k/o2o-dc-client-statusBar.$k.txt.gz
+#rm -r /mnt/mfs/o2o/`date -d $k'-6 day' +%F`/o2o-dc-client-statusBar.`date -d $k'-6 day' +%F`.txt.gz
+
+# while ! hdfs dfs -test -e /user/hive/warehouse/dw_ict_market.db/dw_employee_contribution_efficiency/pt=$k/_SUCCESS;
+# do
+# while ! hdfs dfs -test -e /user/hive/warehouse/dw_ict_market.db/dw_market_base_info/pt=$k/_SUCCESS;
+# do
+# while ! hdfs dfs -test -e /user/hive/warehouse/dw_ict_market.db/dw_market_lable/pt=$k/_SUCCESS;
+# do
+# while ! hdfs dfs -test -e /user/hive/warehouse/dw_ict_market.db/dm_market_status_change_aggr/pt=$k/_SUCCESS;
+# do
+# sleep 1;
+# done
+
+
+
+
+hive -e "
+
+
+-- dm商机业务表
+insert overwrite table dm_ict_market.dm_market_business partition (pt = '$k')
+select a.market_id,
+       a.market_name,
+       Encrypt(a.customer_name)                                               as customer_name,
+       a.customer_demand,
+       a.market_type,
+       split(c.market_racetrack, ',')[0]                                      as racetrack_lv1,                --一级赛道
+       split(c.market_racetrack, ',')[2]                                      as market_racetrack,             --赛道
+       c.industry                                                             as industry,                     --行业
+       split(quarySalesDepartment(a.market_type, split(b.create_dept_name, '_')[2],
+                                  split(b.create_dept_name, '_')[3]), ',')[0] as sales_department,             --一级销售单位
+       split(quarySalesDepartment(a.market_type, split(b.create_dept_name, '_')[2],
+                                  split(b.create_dept_name, '_')[3]), ',')[2] as secondary_sales_unit,         --二级销售单位
+       split(quarySalesDepartment(a.market_type, split(b.create_dept_name, '_')[2],
+                                  split(b.create_dept_name, '_')[3]), ',')[1] as sales_department_property,    --一级销售单位属性
+       case
+           when c.is_has_signed = '是' then a.contract_contract_amount
+           when c.is_has_signed = '否'
+               then if(a.market_money_prediction < 0, '0', a.market_money_prediction)
+           end                                                                as market_sum_amount,            --商机计算金额
+       if(a.market_money_prediction < 0, '0', a.market_money_prediction)      as market_money_prediction_cleaned,
+       c.is_chanshu_market                                                    as is_chanshu_market,            --是否产数商机
+       d.market_state,
+       a.industry_regulatory_department,
+       a.market_money_prediction,
+       a.market_product_type,
+       a.market_product,
+       a.create_time,
+       a.province,
+       a.city,
+       a.district,
+       b.create_employee_name                                                 as market_creator,
+       b.create_dept_name                                                     as market_creator_belonging,
+       c.is_mapping_business_request,
+       c.current_affiliation_key_point,
+       c.is_finish_build_team,
+       c.is_has_signed,
+       b.khjl_employee_name                                                   as khjl_code,
+       b.khjl_dept_name                                                       as customer_manager_belonging,   --客户经理满意度，贡献度需要确认是否在宽表中展现，现在云中台看板中为看到跟支撑专家有关的统计数据
+       ''                                                                     as customer_manager_contribution_degree,
+       ''                                                                     as customer_manager_satisficing, --支撑专家需要确认是否在宽表中展现，现在云中台看板中为看到跟支撑专家有关的统计数据
+       ''                                                                     as support_specialist,
+       ''                                                                     as support_specialist_belonging,
+       ''                                                                     as support_specialist_contribution_degree,
+       ''                                                                     as support_specialist_satisficing,
+       a.write_unit,
+       c.is_lingyun_label
+--商机基础信息表
+from (select *
+      from dw_ict_market.dw_market_base_info
+      where pt = '$k') a
+         left outer join
+     --商机人效表  此表需要做拆分employee_name
+         (select market_id,
+                 max(case when employee_role == '商机创建人' then employee_name end) as create_employee_name,
+                 max(case when employee_role == '商机创建人' then dept_name end)     as create_dept_name,
+                 max(case when employee_role == '客户经理' then employee_name end)  as khjl_employee_name,
+                 max(case when employee_role == '客户经理' then dept_name end)      as khjl_dept_name
+          from dw_ict_market.dw_employee_contribution_efficiency
+          where pt = '$k'
+            and employee_role in ('客户经理', '商机创建人')
+          group by market_id) b
+     on a.market_id = b.market_id
+         left outer join
+     --商机标签表
+             (select * from dw_ict_market.dw_market_lable where pt = '$k') c
+     on a.market_id = c.market_id
+         --商机状态变化表
+         left outer join
+     (select * from dm_ict_market.dm_market_status_change_aggr where pt = '$k') d
+     on a.market_id = d.market_id;
+
+"
+hadoop fs -touchz /user/hive/warehouse/dm_ict_market.db/dm_market_business/pt=$k/_SUCCESS
+
+done
+
+break
+else
+sleep 1
+fi
